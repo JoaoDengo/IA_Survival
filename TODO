@@ -1,0 +1,70 @@
+# TODO - AISurvivors (MVP inicial)
+## Como iniciar este mesmo chat depois
+
+No terminal, dentro do projeto:
+
+1) Continuar a ultima sessao:
+   opencode -c
+
+2) Abrir exatamente esta sessao:
+   opencode --session ses_2a04fc52fffedEydHmbZYCbjB4
+
+
+
+## Objetivo da Sprint 1
+Entregar um loop jogavel de ~60 segundos com:
+player movimenta, inimigo persegue, arma automatica ataca, inimigos morrem, XP sobe, e existe game over.
+
+## Passo a passo inicial
+
+- [ ] 1) Mapa placeholder (arena de teste)
+  - Chao simples ou tile repetido
+  - Camera seguindo o player
+  - Sem arte final e sem lights por enquanto
+
+- [ ] 2) Fundacao do jogo (MVC + ECS)
+  - GameScreen
+  - Engine Ashley
+  - World Box2D
+  - Update com timestep fixo (1/60)
+
+- [ ] 3) Player + Input
+  - Entidade player com componentes basicos
+  - InputProcessor no controller (WASD/setas)
+  - Movimento fluido e limites da arena
+
+- [ ] 4) Inimigo basico + Spawn
+  - Spawn periodico (ex: a cada 2s)
+  - Inimigo perseguindo player (simples no inicio)
+
+- [ ] 5) Combate minimo
+  - Arma automatica (alvo mais proximo)
+  - Projetil e dano
+  - Morte de inimigo e dano no player
+
+- [ ] 6) Progressao
+  - Drop de XP
+  - Coleta de XP
+  - Level up simples (ex: +dano)
+
+- [ ] 7) Estados da partida
+  - Pause
+  - Game over
+  - Restart
+
+- [ ] 8) HUD basica
+  - Vida
+  - XP
+  - Tempo de partida
+  - Wave atual
+
+- [ ] 9) Polimento (depois do gameplay estavel)
+  - box2d-lights
+  - Efeitos visuais e sonoros
+  - Balanceamento
+
+## Definicao de pronto do MVP
+- [ ] Da para jogar por 60 segundos sem quebrar
+- [ ] Ha risco de perder e forma de vencer por sobrevivencia
+- [ ] Fluxo completo: iniciar > jogar > game over > reiniciar
+
