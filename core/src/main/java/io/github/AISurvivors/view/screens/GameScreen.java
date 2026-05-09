@@ -1,80 +1,86 @@
 package io.github.AISurvivors.view.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapProperties;
 import com.badlogic.gdx.maps.objects.PointMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 import io.github.AISurvivors.controller.input.PlayerInputProcessor;
+import io.github.AISurvivors.model.entity.Player;
+import io.github.AISurvivors.view.assets.GameAssets;
+import io.github.AISurvivors.view.camera.WorldCameraController;
 
 public class GameScreen extends ScreenAdapter {
     private static final float PPM = 32f;
     private static final float CAMERA_WORLD_WIDTH = 28f;
     private static final float CAMERA_WORLD_HEIGHT = 15.75f;
-    private static final float PLAYER_WORLD_SIZE = 1.8f;
-    private static final float PLAYER_SPEED = 8f;
 
     private static final int[] BOTTOM_LAYERS = {0, 1, 2, 3, 4, 5};
     private static final int[] TOP_LAYERS = {6};
 
-    private final OrthographicCamera camera = new OrthographicCamera();
-    private final Viewport viewport;
+    private final GameAssets assets;
     private final TiledMap map;
     private final OrthogonalTiledMapRenderer mapRenderer;
-    private final SpriteBatch playerBatch;
-    private final Texture playerWalkTexture;
-    private final Texture playerIdleTexture;
-    private final TextureRegion playerIdleRegion;
-    private final Animation<TextureRegion> playerWalkAnimation;
+    private final WorldCameraController cameraController;
+    private final SpriteBatch worldBatch;
+    private final SpriteBatch hudBatch;
+    private final BitmapFont hudFont;
     private final PlayerInputProcessor playerInput;
+    private final Player player;
+    private final Music backgroundMusic;
 
     private final float mapWidth;
     private final float mapHeight;
-    private final Vector2 playerPosition;
     private final Vector2 inputDirection;
-    private float playerAnimTime;
+    private final Vector2 zoomScreenPosition;
+    private final Vector2 dragPreviousScreenPosition;
+    private final Vector2 dragCurrentScreenPosition;
+    private final Vector2 playerScreenPosition;
+    private final Matrix4 hudProjection = new Matrix4();
 
     public GameScreen() {
-        map = new TmxMapLoader().load("maps/warzone_ai_frontline.tmx");
+        assets = new GameAssets();
+        assets.load();
+        map = assets.map();
         mapRenderer = new OrthogonalTiledMapRenderer(map, 1f / PPM);
 
         MapProperties p = map.getProperties();
         mapWidth = ((Integer) p.get("width")) * ((Integer) p.get("tilewidth")) / PPM;
         mapHeight = ((Integer) p.get("height")) * ((Integer) p.get("tileheight")) / PPM;
 
-        viewport = new FitViewport(CAMERA_WORLD_WIDTH, CAMERA_WORLD_HEIGHT, camera);
-
-        playerWalkTexture = new Texture("sprites/player/walk/player_apocalyptic_walk_sheet.png");
-        playerWalkTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        playerIdleTexture = new Texture("sprites/player/player_apocalyptic_idle.png");
-        playerIdleTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        playerIdleRegion = new TextureRegion(playerIdleTexture);
-
-        TextureRegion[][] split = TextureRegion.split(playerWalkTexture, 32, 32);
-        playerWalkAnimation = new Animation<>(0.12f, split[0]);
-        playerWalkAnimation.setPlayMode(Animation.PlayMode.LOOP);
-
-        playerBatch = new SpriteBatch();
+        cameraController = new WorldCameraController(CAMERA_WORLD_WIDTH, CAMERA_WORLD_HEIGHT, mapWidth, mapHeight);
+        worldBatch = new SpriteBatch();
+        hudBatch = new SpriteBatch();
+        hudFont = new BitmapFont();
+        hudFont.setUseIntegerPositions(false);
         playerInput = new PlayerInputProcessor();
-        playerPosition = findPlayerSpawn();
+        player = new Player(
+            assets.playerIdleTexture(),
+            assets.playerWalkTexture(),
+            assets.playerStepSound(),
+            findPlayerSpawn()
+        );
+        backgroundMusic = assets.backgroundMusic();
+        backgroundMusic.setLooping(true);
+        backgroundMusic.setVolume(0.12f);
         inputDirection = new Vector2();
+        zoomScreenPosition = new Vector2();
+        dragPreviousScreenPosition = new Vector2();
+        dragCurrentScreenPosition = new Vector2();
+        playerScreenPosition = new Vector2();
         Gdx.input.setInputProcessor(playerInput);
 
-        updateCamera();
+        cameraController.setFocusTarget(player.getPosition());
+        cameraController.update();
     }
 
     private Vector2 findPlayerSpawn() {
@@ -91,34 +97,51 @@ public class GameScreen extends ScreenAdapter {
         return new Vector2(mapWidth * 0.5f, mapHeight * 0.5f);
     }
 
-    private void updateCamera() {
-        float halfW = viewport.getWorldWidth() * 0.5f;
-        float halfH = viewport.getWorldHeight() * 0.5f;
-
-        float cameraX = playerPosition.x;
-        float cameraY = playerPosition.y;
-
-        if (mapWidth > viewport.getWorldWidth()) {
-            cameraX = MathUtils.clamp(playerPosition.x, halfW, mapWidth - halfW);
+    private void updateCameraFromInput() {
+        if (playerInput.consumeCameraReset()) {
+            cameraController.resetOffset();
         }
 
-        if (mapHeight > viewport.getWorldHeight()) {
-            cameraY = MathUtils.clamp(playerPosition.y, halfH, mapHeight - halfH);
+        if (playerInput.consumeCameraDrag(dragPreviousScreenPosition, dragCurrentScreenPosition)) {
+            cameraController.panByScreenDrag(
+                dragPreviousScreenPosition.x,
+                dragPreviousScreenPosition.y,
+                dragCurrentScreenPosition.x,
+                dragCurrentScreenPosition.y
+            );
         }
 
-        camera.position.set(cameraX, cameraY, 0f);
-        camera.update();
+        float zoomAmount = playerInput.consumeZoomAmount(zoomScreenPosition);
+        if (zoomAmount != 0f) {
+            cameraController.zoomAt(zoomScreenPosition.x, zoomScreenPosition.y, zoomAmount);
+        }
+    }
+
+    private void renderHud() {
+        cameraController.worldToScreen(player.getPosition(), playerScreenPosition);
+        hudProjection.setToOrtho2D(0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        hudBatch.setProjectionMatrix(hudProjection);
+
+        hudBatch.begin();
+        hudFont.draw(hudBatch, "WASD/setas movem o player", 20f, Gdx.graphics.getHeight() - 20f);
+        hudFont.draw(hudBatch, "Mouse direito arrasta a camera", 20f, Gdx.graphics.getHeight() - 45f);
+        hudFont.draw(hudBatch, "Scroll aplica zoom no cursor", 20f, Gdx.graphics.getHeight() - 70f);
+        hudFont.draw(hudBatch, "Espaco recentra a camera", 20f, Gdx.graphics.getHeight() - 95f);
+        hudFont.draw(hudBatch, "Player", playerScreenPosition.x - 18f, playerScreenPosition.y + 36f);
+        hudBatch.end();
     }
 
     @Override
     public void resize(int width, int height) {
-        viewport.update(width, height, true);
-        updateCamera();
+        cameraController.resize(width, height);
     }
 
     @Override
     public void show() {
         Gdx.input.setInputProcessor(playerInput);
+        if (!backgroundMusic.isPlaying()) {
+            backgroundMusic.play();
+        }
     }
 
     @Override
@@ -127,52 +150,36 @@ public class GameScreen extends ScreenAdapter {
 
         playerInput.getMovementDirection(inputDirection);
         boolean isMoving = !inputDirection.isZero();
+        player.update(delta, inputDirection, mapWidth, mapHeight);
 
-        if (isMoving) {
-            float halfPlayerSize = PLAYER_WORLD_SIZE * 0.5f;
-            playerPosition.x = MathUtils.clamp(
-                playerPosition.x + (inputDirection.x * PLAYER_SPEED * delta),
-                halfPlayerSize,
-                mapWidth - halfPlayerSize
-            );
-            playerPosition.y = MathUtils.clamp(
-                playerPosition.y + (inputDirection.y * PLAYER_SPEED * delta),
-                halfPlayerSize,
-                mapHeight - halfPlayerSize
-            );
-            playerAnimTime += delta;
-        }
+        cameraController.setFocusTarget(player.getPosition());
+        updateCameraFromInput();
+        cameraController.update();
 
-        updateCamera();
-
-        mapRenderer.setView(camera);
+        mapRenderer.setView(cameraController.getCamera());
         mapRenderer.render(BOTTOM_LAYERS);
 
-        TextureRegion currentPlayerFrame = isMoving
-            ? playerWalkAnimation.getKeyFrame(playerAnimTime, true)
-            : playerIdleRegion;
-        float drawX = playerPosition.x - (PLAYER_WORLD_SIZE * 0.5f);
-        float drawY = playerPosition.y - (PLAYER_WORLD_SIZE * 0.5f);
-
-        playerBatch.setProjectionMatrix(camera.combined);
-        playerBatch.begin();
-        playerBatch.draw(currentPlayerFrame, drawX, drawY, PLAYER_WORLD_SIZE, PLAYER_WORLD_SIZE);
-        playerBatch.end();
+        worldBatch.setProjectionMatrix(cameraController.getCamera().combined);
+        worldBatch.begin();
+        player.draw(worldBatch, isMoving);
+        worldBatch.end();
 
         mapRenderer.render(TOP_LAYERS);
+        renderHud();
     }
 
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
+        backgroundMusic.pause();
     }
 
     @Override
     public void dispose() {
-        playerBatch.dispose();
-        playerWalkTexture.dispose();
-        playerIdleTexture.dispose();
+        hudFont.dispose();
+        hudBatch.dispose();
+        worldBatch.dispose();
         mapRenderer.dispose();
-        map.dispose();
+        assets.dispose();
     }
 }
