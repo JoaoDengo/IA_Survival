@@ -35,9 +35,6 @@ public class WorldCameraController {
         update();
     }
 
-    public void setFocusTarget(Vector2 target) {
-        focusTarget.set(target);
-    }
 
     public void resetOffset() {
         focusOffset.setZero();
@@ -81,30 +78,29 @@ public class WorldCameraController {
         return out.set(tmpVector.x, tmpVector.y);
     }
 
+    public void setFocusTarget(Vector2 target) {
+        focusTarget.set(target);
+    }
+
     public void update() {
         float visibleWidth = viewport.getWorldWidth() * camera.zoom;
         float visibleHeight = viewport.getWorldHeight() * camera.zoom;
         float halfWidth = visibleWidth * 0.5f;
         float halfHeight = visibleHeight * 0.5f;
-
         float desiredX = focusTarget.x + focusOffset.x;
         float desiredY = focusTarget.y + focusOffset.y;
-
         float cameraX = desiredX;
         float cameraY = desiredY;
-
         if (worldWidth > visibleWidth) {
             cameraX = MathUtils.clamp(desiredX, halfWidth, worldWidth - halfWidth);
         } else {
             cameraX = worldWidth * 0.5f;
         }
-
         if (worldHeight > visibleHeight) {
             cameraY = MathUtils.clamp(desiredY, halfHeight, worldHeight - halfHeight);
         } else {
             cameraY = worldHeight * 0.5f;
         }
-
         camera.position.set(cameraX, cameraY, 0f);
         camera.update();
     }

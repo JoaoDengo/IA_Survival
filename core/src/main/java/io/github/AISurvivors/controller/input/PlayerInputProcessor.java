@@ -11,6 +11,7 @@ public class PlayerInputProcessor implements InputProcessor {
     private boolean leftPressed;
     private boolean rightPressed;
     private boolean resetCameraRequested;
+    private boolean debugHitboxToggleRequested;
     private boolean cameraDragActive;
     private boolean cameraDragPending;
     private boolean worldClickPending;
@@ -47,6 +48,12 @@ public class PlayerInputProcessor implements InputProcessor {
     public boolean consumeCameraReset() {
         boolean consumed = resetCameraRequested;
         resetCameraRequested = false;
+        return consumed;
+    }
+
+    public boolean consumeDebugHitboxToggle() {
+        boolean consumed = debugHitboxToggleRequested;
+        debugHitboxToggleRequested = false;
         return consumed;
     }
 
@@ -103,6 +110,9 @@ public class PlayerInputProcessor implements InputProcessor {
                 return true;
             case Input.Keys.SPACE:
                 resetCameraRequested = true;
+                return true;
+            case Input.Keys.H:
+                debugHitboxToggleRequested = true;
                 return true;
             default:
                 return false;

@@ -3,7 +3,6 @@ package io.github.AISurvivors;
 import com.badlogic.gdx.Game;
 import io.github.AISurvivors.view.screens.GameScreen;
 
-/** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends Game {
 
     @Override

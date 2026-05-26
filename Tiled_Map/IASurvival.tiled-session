@@ -9,23 +9,22 @@
             "scaleInEditor": 1
         },
         "warzone_ai_frontline.tmx": {
-            "scale": 0.25,
-            "selectedLayer": 0,
+            "scale": 0.125,
+            "selectedLayer": 8,
             "viewCenter": {
-                "x": 3890,
-                "y": 3088
+                "x": 3788,
+                "y": 3024
             }
         }
     },
     "map.height": 200,
     "map.width": 200,
     "openFiles": [
-        "war_tileset.tsx",
         "warzone_ai_frontline.tmx"
     ],
     "project": "IASurvival.tiled-project",
     "recentFiles": [
-        "war_tileset.tsx",
-        "warzone_ai_frontline.tmx"
+        "warzone_ai_frontline.tmx",
+        "war_tileset.tsx"
     ]
 }
