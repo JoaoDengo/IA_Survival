@@ -4,10 +4,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapProperties;
@@ -20,6 +20,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.AISurvivors.controller.input.PlayerInputProcessor;
 import io.github.AISurvivors.model.entity.Player;
+import io.github.AISurvivors.model.spawn.EnemyManager;
 import io.github.AISurvivors.view.assets.GameAssets;
 import io.github.AISurvivors.view.camera.WorldCameraController;
 import io.github.AISurvivors.view.ui.SpeechBubble;
@@ -36,6 +37,7 @@ public class GameScreen extends ScreenAdapter {
     private final SpeechBubble speechBubble;
     private final PlayerInputProcessor playerInput;
     private final Player player;
+    private final EnemyManager enemyManager;
     private final Music backgroundMusic;
 
     private static final float PPM = 32f;
@@ -80,6 +82,12 @@ public class GameScreen extends ScreenAdapter {
             assets.playerWalkTexture(),
             assets.playerStepSound(),
             findPlayerSpawn()
+        );
+        enemyManager = new EnemyManager(
+            assets.enemyRobotIdleTexture(),
+            assets.enemyRobotWalkTexture(),
+            mapWidth,
+            mapHeight
         );
         backgroundMusic = assets.backgroundMusic();
         backgroundMusic.setLooping(true);
@@ -145,6 +153,14 @@ public class GameScreen extends ScreenAdapter {
         hudFont.draw(hudBatch, "Scroll aplica zoom no cursor", 20f, Gdx.graphics.getHeight() - 70f);
         hudFont.draw(hudBatch, "Espaco recentra a camera", 20f, Gdx.graphics.getHeight() - 95f);
         hudFont.draw(hudBatch, "H alterna hitboxes: " + (debugHitboxes ? "ON" : "OFF"), 20f, Gdx.graphics.getHeight() - 120f);
+        hudFont.draw(
+            hudBatch,
+            "Tempo: " + (int) enemyManager.getElapsedTime() + "s | Inimigos: "
+                + enemyManager.getActiveCount() + "/" + enemyManager.getActiveLimit()
+                + " | Pool livre: " + enemyManager.getFreeCount(),
+            20f,
+            Gdx.graphics.getHeight() - 145f
+        );
         speechBubble.draw(hudBatch, playerScreenPosition.x, playerScreenPosition.y, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         hudBatch.end();
     }
@@ -159,6 +175,8 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.begin(ShapeType.Line);
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.rect(playerBounds.x, playerBounds.y, playerBounds.width, playerBounds.height);
+        shapeRenderer.setColor(Color.ORANGE);
+        enemyManager.drawDebug(shapeRenderer);
         shapeRenderer.end();
     }
 
@@ -186,11 +204,16 @@ public class GameScreen extends ScreenAdapter {
         updateCameraFromInput();
         cameraController.update();
 
+        float visibleWidth = cameraController.getViewport().getWorldWidth() * cameraController.getCamera().zoom;
+        float visibleHeight = cameraController.getViewport().getWorldHeight() * cameraController.getCamera().zoom;
+        enemyManager.update(delta, player.getPosition(), visibleWidth, visibleHeight);
+
         mapRenderer.setView(cameraController.getCamera());
         mapRenderer.render(BOTTOM_LAYERS);
 
         worldBatch.setProjectionMatrix(cameraController.getCamera().combined);
         worldBatch.begin();
+        enemyManager.draw(worldBatch);
         player.draw(worldBatch);
         worldBatch.end();
 
@@ -207,6 +230,7 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
+        enemyManager.dispose();
         speechBubble.dispose();
         hudFont.dispose();
         shapeRenderer.dispose();
