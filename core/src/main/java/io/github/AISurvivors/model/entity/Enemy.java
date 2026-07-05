@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Pool;
+import io.github.AISurvivors.model.collision.CollisionWorld;
 
 public class Enemy implements Pool.Poolable {
     private static final float WORLD_SIZE = 1.8f;
@@ -16,7 +17,6 @@ public class Enemy implements Pool.Poolable {
     private static final float SPEED = 2.6f;
     private static final float FRAME_TIME = 0.12f;
     private static final float STOP_DISTANCE = 0.8f;
-    private static final float MAX_HEALTH = 3f;
 
     private final Vector2 position = new Vector2();
     private final Rectangle hitbox = new Rectangle();
@@ -35,9 +35,9 @@ public class Enemy implements Pool.Poolable {
         reset();
     }
 
-    public void init(float x, float y) {
+    public void init(float x, float y, float health) {
         position.set(x, y);
-        health = MAX_HEALTH;
+        this.health = health;
         alive = true;
         currentFrame = 0;
         animationTimer = FRAME_TIME;
@@ -45,7 +45,8 @@ public class Enemy implements Pool.Poolable {
         updateHitbox();
     }
 
-    public void update(float delta, Vector2 target, float worldWidth, float worldHeight) {
+    public void update(float delta, Vector2 target, float worldWidth, float worldHeight,
+                       CollisionWorld collisionWorld) {
         if (!alive) {
             return;
         }
@@ -55,10 +56,15 @@ public class Enemy implements Pool.Poolable {
         float distanceSquared = (directionX * directionX) + (directionY * directionY);
         if (distanceSquared > STOP_DISTANCE * STOP_DISTANCE) {
             float inverseDistance = 1f / (float) Math.sqrt(distanceSquared);
-            position.add(
-                directionX * inverseDistance * SPEED * delta,
-                directionY * inverseDistance * SPEED * delta
-            );
+            float dx = directionX * inverseDistance * SPEED * delta;
+            float dy = directionY * inverseDistance * SPEED * delta;
+
+            // colisao com o mapa: desliza ao longo das paredes
+            if (collisionWorld != null) {
+                collisionWorld.moveAndCollide(position, HITBOX_WIDTH * 0.5f, HITBOX_HEIGHT * 0.5f, dx, dy);
+            } else {
+                position.add(dx, dy);
+            }
 
             animationTimer -= delta;
             if (animationTimer <= 0f) {

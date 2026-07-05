@@ -23,7 +23,10 @@ public class SpeechBubble implements Disposable {
     private final BitmapFont font;
     private final GlyphLayout layout = new GlyphLayout();
 
+    private static final float DEFAULT_DURATION = 3.5f;
+
     private String currentMessage = "Sistema ativo. Sobreviva.";
+    private float visibleTimer = DEFAULT_DURATION;
 
     public SpeechBubble() {
         patchTexture = new Texture(Gdx.files.internal("ui/speech_bubble.png"));
@@ -38,10 +41,26 @@ public class SpeechBubble implements Disposable {
     }
 
     public void setMessage(String message) {
+        show(message, DEFAULT_DURATION);
+    }
+
+    /** Mostra a mensagem por {@code seconds} segundos e depois some. */
+    public void show(String message, float seconds) {
         currentMessage = message;
+        visibleTimer = seconds;
+    }
+
+    /** Faz o balao contar o tempo; deve ser chamado a cada frame. */
+    public void update(float delta) {
+        if (visibleTimer > 0f) {
+            visibleTimer -= delta;
+        }
     }
 
     public void draw(SpriteBatch batch, float playerScreenX, float playerScreenY, float screenWidth, float screenHeight) {
+        if (visibleTimer <= 0f) {
+            return;
+        }
         layout.setText(font, currentMessage, font.getColor(), TEXTBOX_WIDTH, Align.left, true);
 
         float bubbleWidth = layout.width + (PADDING_X * 2f);
