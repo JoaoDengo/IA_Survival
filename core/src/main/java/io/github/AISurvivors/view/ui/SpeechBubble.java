@@ -44,13 +44,11 @@ public class SpeechBubble implements Disposable {
         show(message, DEFAULT_DURATION);
     }
 
-    /** Mostra a mensagem por {@code seconds} segundos e depois some. */
     public void show(String message, float seconds) {
         currentMessage = message;
         visibleTimer = seconds;
     }
 
-    /** Faz o balao contar o tempo; deve ser chamado a cada frame. */
     public void update(float delta) {
         if (visibleTimer > 0f) {
             visibleTimer -= delta;

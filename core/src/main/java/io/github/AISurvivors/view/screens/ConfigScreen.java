@@ -218,7 +218,7 @@ public class ConfigScreen implements Screen {
         form.add(backButton).colspan(1).width(150f).height(44f).padTop(18f);
         form.add(saveButton).colspan(1).width(150f).height(44f).padTop(18f);
         form.add(playButton).colspan(1).width(220f).height(44f).padTop(18f).row();
-        form.add(statusLabel).colspan(3).width(500f).padTop(10f).row();
+        form.add(statusLabel).colspan(3).width(500f).minHeight(46f).padTop(10f).row();
 
         root.add(form).width(600f).pad(24f);
     }

@@ -1,9 +1,21 @@
 {
-    "activeFile": "warzone_ai_frontline.tmx",
+    "activeFile": "/home/joaodengo/Faculdade/Jogos/ProjetoFinal/assets/maps/warzone_ai_frontline.tmx",
     "expandedProjectPaths": [
         "."
     ],
+    "file.lastUsedOpenFilter": "Todos os Ficheiros (*)",
     "fileStates": {
+        "/home/joaodengo/Faculdade/Jogos/ProjetoFinal/assets/maps/war_tileset.tsx": {
+            "scaleInDock": 1
+        },
+        "/home/joaodengo/Faculdade/Jogos/ProjetoFinal/assets/maps/warzone_ai_frontline.tmx": {
+            "scale": 0.1322578125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 3202.079272254711,
+                "y": 3202.0792722547108
+            }
+        },
         "war_tileset.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -13,18 +25,20 @@
             "selectedLayer": 8,
             "viewCenter": {
                 "x": 3788,
-                "y": 3148
+                "y": 3020
             }
         }
     },
     "map.height": 200,
     "map.width": 200,
     "openFiles": [
-        "warzone_ai_frontline.tmx"
+        "warzone_ai_frontline.tmx",
+        "/home/joaodengo/Faculdade/Jogos/ProjetoFinal/assets/maps/warzone_ai_frontline.tmx"
     ],
     "project": "IASurvival.tiled-project",
     "recentFiles": [
         "warzone_ai_frontline.tmx",
+        "/home/joaodengo/Faculdade/Jogos/ProjetoFinal/assets/maps/warzone_ai_frontline.tmx",
         "war_tileset.tsx"
     ]
 }

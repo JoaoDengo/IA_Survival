@@ -329,12 +329,11 @@ public class GameScreen extends ScreenAdapter {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
-    private void renderBulletsAndParticles() {
+    private void renderBullets() {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapeRenderer.setProjectionMatrix(cameraController.getCamera().combined);
         shapeRenderer.begin(ShapeType.Filled);
-        particleSystem.draw(shapeRenderer);
         weaponSystem.draw(shapeRenderer);
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
@@ -394,7 +393,7 @@ public class GameScreen extends ScreenAdapter {
             particleSystem.update(delta);
             speechBubble.update(delta);
 
-            // dano por contato: inimigo encostou no player => tira vida (com i-frames)
+            // dano por contato: inimigo encostou no player => tira vida
             player.getBounds(playerBounds);
             if (enemyManager.isTouchingPlayer(playerBounds)) {
                 player.takeDamage(ENEMY_CONTACT_DAMAGE);
@@ -424,9 +423,10 @@ public class GameScreen extends ScreenAdapter {
         worldBatch.begin();
         enemyManager.draw(worldBatch);
         player.draw(worldBatch);
+        particleSystem.draw(worldBatch);
         worldBatch.end();
 
-        renderBulletsAndParticles();
+        renderBullets();
 
         renderDebugHitboxes();
         renderHud();

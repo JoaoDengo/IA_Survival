@@ -61,7 +61,6 @@ public class EnemyManager {
                 return new Enemy(enemyIdleTexture, enemyWalkTexture);
             }
         };
-
         enemyPool.fill(MAX_ACTIVE_ENEMIES);
     }
 

@@ -44,13 +44,11 @@ public class Player {
         this.health = MAX_HEALTH;
     }
 
-    public void update(float delta, Vector2 movementDirection, float worldWidth, float worldHeight,
-                       CollisionWorld collisionWorld) {
+    public void update(float delta, Vector2 movementDirection, float worldWidth, float worldHeight, CollisionWorld collisionWorld) {
         // a invencibilidade corre sempre, mesmo parado
         if (invincibleTimer > 0f) {
             invincibleTimer -= delta;
         }
-
         if (movementDirection.isZero()) {
             sprite.setRegion(idleFrame);
             stepTimer = STEP_INTERVAL;

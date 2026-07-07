@@ -8,20 +8,7 @@ import io.github.AISurvivors.model.entity.Bullet;
 import io.github.AISurvivors.model.entity.Enemy;
 import io.github.AISurvivors.model.spawn.EnemyManager;
 
-/**
- * Arma automatica do player.
- *
- * <p>A cada {@link #FIRE_INTERVAL} segundos a arma procura o inimigo mais
- * proximo dentro do alcance e dispara uma bala na direcao dele.</p>
- *
- * <p>Reune os dois conceitos pedidos:
- * <ul>
- *   <li><b>Object pooling</b> (slide 04): as balas sao reaproveitadas de uma
- *   {@link Pool}, seguindo o mesmo estilo do {@link EnemyManager}.</li>
- *   <li><b>Hitboxes</b> (slide 08): a colisao bala-inimigo e feita comparando os
- *   retangulos ({@code bulletHitbox.overlaps(enemyHitbox)}).</li>
- * </ul></p>
- */
+
 public class WeaponSystem {
     private static final int MAX_ACTIVE_BULLETS = 64;
     private static final float FIRE_INTERVAL = 0.45f;   // segundos entre cada tiro
@@ -76,9 +63,7 @@ public class WeaponSystem {
             Bullet bullet = activeBullets.get(i);
             bullet.update(delta);
 
-            // hitbox da bala dentro da hitbox do inimigo => acerto (slide 08)
-            if (bullet.isAlive()
-                && enemyManager.damageFirstEnemyHit(bullet.getHitbox(), bullet.getDamage())) {
+            if (bullet.isAlive() && enemyManager.damageFirstEnemyHit(bullet.getHitbox(), bullet.getDamage())) {
                 bullet.markForRemoval();
             }
 
